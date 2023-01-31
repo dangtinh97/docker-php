@@ -1,0 +1,2 @@
+- COPY name_db.sql to folder docker-entrypoint-initdb.d
+- source docker-entrypoint-initdb.d/name_db.sql

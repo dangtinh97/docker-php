@@ -1,0 +1,49 @@
+version: '3.3'
+
+networks:
+  backend:
+    driver: bridge
+services:
+  nginx:
+    env_file:
+      - .env
+    image: nginx:latest
+    working_dir: /var/www/html
+    environment:
+      ROOT_FOLDER: /var/www/html
+    volumes:
+      - "${APP_CODE_PATH_HOST}:/var/www/html"
+      - ./nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
+    ports:
+      - "80:80"
+    networks:
+      - backend
+    depends_on:
+      - php
+  php:
+    build:
+      context: .
+      dockerfile: ./php/Dockerfile
+    environment:
+      APP_CODE_PATH_HOST: ${APP_CODE_PATH_HOST}
+    working_dir: /var/www/html
+    volumes:
+      - "${APP_CODE_PATH_HOST}:/var/www/html"
+    ports:
+      - "9000:9000"
+    networks:
+      - backend
+  mysql:
+    platform: linux/x86_64
+    image: mysql:5.7
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD}"
+    volumes:
+      - ./mysql/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
+      - mysql-local:/var/lib/mysql
+    networks:
+      - backend
+    ports:
+      - "3306:3306"
+volumes:
+  mysql-local:
